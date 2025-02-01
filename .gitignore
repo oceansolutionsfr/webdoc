@@ -1,0 +1,6 @@
+.git/
+**/.vscode
+**/_*
+tmp/
+logs/
+node_modules/

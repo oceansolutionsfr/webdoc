@@ -1,0 +1,12 @@
+{
+  "type": "module",
+  "scripts": {
+    "clean": "cd .. ; find . -name ._* -delete ; find . -name .DS_Store -delete ; rm -Rf tmp/* ; rm -Rf logs/* ; cd webos ",
+    "commit": "npm run clean && git add . --all && git commit && git push origin main",
+    "update": "git pull origin-lab main",
+    "php": "printf '🌊 Ocean Solutions\n   starting PHP 8.3 on http://localhost:9000\n,   base directory: '$(pwd)'\n' && php -q -S localhost:9000 &",
+    "apache": "brew services stop httpd ; brew services start httpd"
+  },
+  "dependencies": {
+  }
+}
