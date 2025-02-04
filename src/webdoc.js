@@ -27,10 +27,6 @@ class WebDoc extends OObject {
     /** @property string @description name of the current container of a descriptor */
     #container_name = null
     
-    
-    context() {
-        return this.__context[this.__context.length - 1]
-    }
 
     /** @return WebDoc @description instanciate a parse a javascript file and create a documentation object from WebDoc comments @param :string javascript javascript code @param :object options the parser options {format}  */
     constructor(javascript) {
