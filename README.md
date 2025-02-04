@@ -1,10 +1,10 @@
-# WebMAN
+# WebDoc
 
-<a href="https://github.com/oceansolutionsfr/webman/LICENSE.md"><img src="https://img.shields.io/npm/l/winbox.svg"></a> <img src="https://img.shields.io/badge/languages-javascript%2Fcss-red"> <a href="https://www.paypal.com/donate/?hosted_button_id=TZMEKJU9DGF92"><img src="https://img.shields.io/badge/donate-paypal-blue"></a>
+<a href="https://github.com/oceansolutionsfr/webdoc/LICENSE.md"><img src="https://img.shields.io/npm/l/winbox.svg"></a> <img src="https://img.shields.io/badge/languages-javascript%2Fcss-red"> <a href="https://www.paypal.com/donate/?hosted_button_id=TZMEKJU9DGF92"><img src="https://img.shields.io/badge/donate-paypal-blue"></a>
 
 Open source javascript utils for documentation generation. Output can be text, CLI, json, HTML, CVS
 
-WebMAN is a dependency free Ecmascript library.
+WebDoc is a dependency free Ecmascript library.
 
 #### Compatibility
 <div style="width: 100%; text-align: center;">
@@ -54,7 +54,7 @@ WebMAN is a dependency free Ecmascript library.
         <tbody>
             <tr>
                 <th class="bc-feature bc-feature-depth-0" scope="row">
-                    <div class="bc-table-row-header"><code>WebMAN</code></div>
+                    <div class="bc-table-row-header"><code>WebDoc</code></div>
                 </th>
                 <td class="bc-support bc-browser-chrome bc-supports-yes bc-has-history" aria-expanded="false">
                     <div class="bcd-cell-text-wrapper"><div class="bcd-cell-text-copy"><span class="bc-browser-name">>= 106.0</span></div>

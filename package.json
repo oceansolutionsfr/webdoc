@@ -5,8 +5,11 @@
     "commit": "npm run clean && git add . --all && git commit && git push origin main",
     "update": "git pull origin-lab main",
     "php": "printf '🌊 Ocean Solutions\n   starting PHP 8.3 on http://localhost:9000\n,   base directory: '$(pwd)'\n' && php -q -S localhost:9000 &",
-    "apache": "brew services stop httpd ; brew services start httpd"
+    "apache": "brew services stop httpd ; brew services start httpd",
+    "test": "for i in test/*.js; do node $i;done"
   },
   "dependencies": {
+    "@node-minify/core": "^9.0.2",
+    "@node-minify/uglify-js": "^9.0.1"
   }
 }
