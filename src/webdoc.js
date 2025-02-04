@@ -12,25 +12,30 @@ class OObject{#a=null;#b=null;constructor(){this.#a=Date.now(),this.#b=parseInt(
 /** @class WebDoc @description manage documentation */
 class WebDoc extends OObject {
 
-    /** @property array @description array of line descriptor {raw: string, context: string, container: string} */
-    lines = null
-
-    /** @property array @description the array containing all the parsing errors */
-    errors = []
-
-    /** @property object @description the object containing the result of the parsing */
-    document = []
+    /** @property string @description name of the current container of a descriptor */
+    #container_name = null
     
     /** @property array @description contains the descriptor of javascript element {line: string, next_line: line, position: number} */
     descriptors = []
 
-    /** @property string @description name of the current container of a descriptor */
-    #container_name = null
+    /** @property object @description the object containing the result of the parsing */
+    document = []
+    
+    /** @property array @description the array containing all the parsing errors */
+    errors = []
+
+    /** @property array @description array of line descriptor {raw: string, context: string, container: string} */
+    lines = null
+
+    /** @property string @description name of the module */
+    module = null
+
     
 
-    /** @return WebDoc @description instanciate a parse a javascript file and create a documentation object from WebDoc comments @param :string javascript javascript code @param :object options the parser options {format}  */
-    constructor(javascript) {
+    /** @return WebDoc @description instanciate a WebDoc instance from a javascript string @param string javascript javascript code @param string module name of the module containing the javascript */
+    constructor(javascript, module = null) {
         super()
+        this.module = module
         this.lines = javascript.split("\n").map(line => clean(line))
         
     }
@@ -43,7 +48,7 @@ class WebDoc extends OObject {
             switch(chunck_type) {
                 case "module": case "class": case "function": case "const": case "property": case "return" :
                     break
-                case "author": case "description": case "override": case "license": case "since": case "disclaimer":
+                case "author": case "description": case "override": case "license": case "since": case "disclaimer": 
                     desc[chunck_type] = clean(fields.slice(1).join(" "))
                     break
                 case "param":
@@ -80,7 +85,7 @@ class WebDoc extends OObject {
     parse() {
         for(let i = 0; i < this.lines.length; i++) {
             let line = this.lines[i]
-            const desc = {status: "valid", next_line: i < (this.lines.length - 1) ? clean(this.lines[i+1]) : null, position: i + 1}
+            const desc = {next_line: i < (this.lines.length - 1) ? clean(this.lines[i+1]) : null, position: i + 1}
             let terms = desc.next_line?.split(" ").map(v => clean(v))
             if(!line.startsWith("/*") || !line.endsWith("*/")) continue
             line = line.replaceAll("/**","").replaceAll("/*","").replaceAll("**/","").replaceAll("*/","")
@@ -89,8 +94,8 @@ class WebDoc extends OObject {
             desc.primitive = desc.chuncks[0].toLowerCase().startsWith("return") ? "function" : clean(desc.chuncks[0].split(" ")[0]).toLowerCase()
             switch(desc.primitive) {
                 case "const":
-                    desc.name = desc.next_line?.split(" ").map(i => clean(i))[2]
-                    desc.type = desc.next_line?.split(" ").map(i => clean(i))[1]
+                    desc.name = desc.next_line?.split(" ").map(i => clean(i))[1]
+                    desc.type = clean(desc.chuncks[0].split(" ")[1])
                     break
                 case "function":
                     desc.return_type = clean(desc.chuncks[0].split(" ")[1])
@@ -98,6 +103,7 @@ class WebDoc extends OObject {
                     break
                 case "class":
                     desc.name = desc.next_line?.split(" ").map(i => clean(i))[1]
+                    if(desc.next_line?.split(" ").map(i => clean(i))[2] === "extends") desc.extends = desc.next_line?.split(" ").map(i => clean(i))[3]
                     if(desc.next_line?.endsWith("{")) this.#container_name = desc.name
                     break
                 case "property":
@@ -106,6 +112,7 @@ class WebDoc extends OObject {
                     break
                 case "module":
                     desc.name = clean(desc.chuncks[0].split(" ")[1])
+                    if(this.module && desc.name !== module) this.error("inconsistancy of module name (" + this.module + "<>" + desc.name + ")",i)
                     break
                 default:
                     this.error("cannot parse a descriptor with a starting tag " + desc.chuncks[0], i)
@@ -155,6 +162,36 @@ class WebDoc extends OObject {
         }
     }
 
+
+    render(options = {format: "csv", separator:";"}) {
+        if(options.format === "csv") {
+            const head = ["module"]
+            const lines = []
+            for(const descriptor of this.descriptors) {
+                const line = [this.module]
+                for(const key in descriptor) {
+                    const field = descriptor[key]
+                    if(field && typeof field === "object") {
+                        // when the field is a nested object or array
+                    } else {
+                        let line_index = head.indexOf(key)
+                        if(line_index === -1) {
+                            line_index = head.length
+                            head.push(key)
+                        }
+
+                    }
+                }
+                
+            }
+            let output = head.join(options.separator)
+            for(const line of lines) output += "\n" + line.join(options.separator)
+            return output
+
+        }
+        console.warn("cannot render WebDoc, format " + options.format + " not implemented")
+    }
+
     /** @return object @description a json representation of some stats on the instance @param string mode expected output [json, string]*/
     stats(mode = "json") {
         if(mode !== "json") return super.stats(mode)
@@ -164,7 +201,6 @@ class WebDoc extends OObject {
             errors: this.errors.length
         }
     }
-
 } 
 
 
