@@ -1,13 +1,39 @@
-/** copyright (C) 2025 sebastien.mamy@gmail.com
- *  @license GNU General Public Licence v2 @disclaimer in no event shall the author be liable for any claim or damages. */
+/** @module webdoc.js @copyright (C) 2025 sebastien.mamy@gmail.com @license GNU General Public Licence v2 @disclaimer in no event shall the author be liable for any claim or damages. */
 
 
 
 const clean = (str = "") => typeof str !== "string" ? null : str.replace(/\n/g, "").replace(/\\n/g, "").split('\\"').join('"').replace(/ +/g, " ").trim()
 
-// a root for all the classes
-class OObject{#a=null;#b=null;constructor(){this.#a=Date.now(),this.#b=parseInt((""+Math.random()).substring(2,16)+this.__timestamp).toString(16)}stats(t="json"){if("json"===t)return{class:this.constructor.name,id:this.#b,timestamp:this.#a};let s=this.stats();return Object.keys(s).reduce((t,i)=>t+="  - "+i+": "+s[i]+"\n","Object Instance\n")}}
 
+/** @class OObject @description a parent class with some utils attached */
+class OObject {
+
+    /** @property number @description the timestamp of the creation of the object */
+    #timestamp = null
+
+    /** @property string @description an unique enough UUID for the instance */
+    #uuid = null
+
+    /** @return OObject @description create an instance of OObject */
+    constructor() {
+        this.#timestamp = Date.now()
+        this.#uuid = (parseInt((""+Math.random()).substring(2,16)+this.__timestamp)).toString(16)
+    }
+
+    /** @return object @description a json representation of some stats on the instance @param string mode expected output [json, string]*/
+    stats(mode = "json") {
+        if(mode === "json") return {
+            class: this.constructor.name,
+            id: this.#uuid,
+            timestamp: this.#timestamp
+        }
+        const json = this.stats()
+        return Object.keys(json).reduce((result, key) => {
+            result += "  - " + key + ": " + json[key] + "\n"
+            return result
+        },"Object Instance\n")
+    }
+}
 
 /** @class WebDoc @description manage documentation */
 class WebDoc extends OObject {
@@ -19,7 +45,7 @@ class WebDoc extends OObject {
     descriptors = []
 
     /** @property object @description the object containing the result of the parsing */
-    document = []
+    document = null
     
     /** @property array @description the array containing all the parsing errors */
     errors = []
@@ -44,11 +70,12 @@ class WebDoc extends OObject {
     descriptor(desc) {
         for(const chunck of desc.chuncks) {
             const fields = chunck.split(" ").map(value => clean(value)).filter(value => value.length > 0)
+            if(fields.length === 0) continue
             const chunck_type = fields[0].toLowerCase()
             switch(chunck_type) {
                 case "module": case "class": case "function": case "const": case "property": case "return" :
                     break
-                case "author": case "description": case "override": case "license": case "since": case "disclaimer": 
+                case "author": case "description": case "override": case "license": case "since": case "disclaimer": case "copyright":
                     desc[chunck_type] = clean(fields.slice(1).join(" "))
                     break
                 case "param":
@@ -81,7 +108,7 @@ class WebDoc extends OObject {
         console.warn("NOT IMPLEMENTED: write log in file " + log_file)        
     }
 
-    /** @return array @description parse the description line and return the created descriptors */
+    /** @return WebDoc @description parse the description line and return the created descriptors */
     parse() {
         for(let i = 0; i < this.lines.length; i++) {
             let line = this.lines[i]
@@ -122,7 +149,7 @@ class WebDoc extends OObject {
             delete desc.next_line
             this.descriptors.push(desc)
         }
-        return this.descriptors
+        return this
     }
 
     /** @return none @description parse a line following a descriptor and update the descriptor @param object desc the descriptor to update @param array terms the elements of the splited line */
@@ -153,43 +180,13 @@ class WebDoc extends OObject {
             desc.name = clean(terms[0].split(".")[1])
             desc.container_name = clean(terms[0].split(".")[0])
             desc.container_type = "const"
-            desc.member_type = "object"
+            delete desc.member_type
         }
         if(terms[0].indexOf(".") < 0) {
             desc.name = clean(terms[0].split("(")[0])
             desc.container_type = "class"
             desc.container_name = this.#container_name
         }
-    }
-
-
-    render(options = {format: "csv", separator:";"}) {
-        if(options.format === "csv") {
-            const head = ["module"]
-            const lines = []
-            for(const descriptor of this.descriptors) {
-                const line = [this.module]
-                for(const key in descriptor) {
-                    const field = descriptor[key]
-                    if(field && typeof field === "object") {
-                        // when the field is a nested object or array
-                    } else {
-                        let line_index = head.indexOf(key)
-                        if(line_index === -1) {
-                            line_index = head.length
-                            head.push(key)
-                        }
-
-                    }
-                }
-                
-            }
-            let output = head.join(options.separator)
-            for(const line of lines) output += "\n" + line.join(options.separator)
-            return output
-
-        }
-        console.warn("cannot render WebDoc, format " + options.format + " not implemented")
     }
 
     /** @return object @description a json representation of some stats on the instance @param string mode expected output [json, string]*/
@@ -200,6 +197,51 @@ class WebDoc extends OObject {
             descriptors: this.descriptors.length  + " items",
             errors: this.errors.length
         }
+    }
+
+    /** @return WebDoc @description transform the descriptors into a document json */
+    transform() {
+        const constants = this.descriptors.filter(desc => desc.primitive === "const").reduce((result, e) => {
+            result[e.name] = e
+            delete result[e.name].name
+            return result}, {})
+        const classes = this.descriptors.filter(desc => desc.primitive === "class").reduce((result, e) => {
+            result[e.name] = e
+            delete result[e.name].name
+            return result}, {})
+        const module = this.descriptors.filter(desc => desc.primitive === "module")[0]
+        const objects = {}
+        for(const desc of this.descriptors) {
+            if(desc.container_type === "const") {
+                const constant = constants[desc.container_name]
+                if(!constant[desc.primitive]) constant[desc.primitive] = {}                
+                constant[desc.primitive][desc.name] = desc
+                let c = constant[desc.primitive][desc.name]
+                delete c.primitive 
+                delete c.container_type 
+                delete c.container_name 
+                delete c.name
+            } 
+            if(desc.container_type === "class") {
+                const cl = classes[desc.container_name]
+                if(!cl[desc.primitive]) cl[desc.primitive] = {}                
+                cl[desc.primitive][desc.name] = desc
+                let c = cl[desc.primitive][desc.name]
+                delete c.primitive 
+                delete c.container_type 
+                delete c.container_name 
+                delete c.name
+            }
+        }
+        for(const cst_name in constants) {
+            let cst = constants[cst_name]
+            if(cst.function || cst.property) {
+                objects[cst_name] = cst
+                delete constants[cst_name]
+            }
+        }
+        this.document = {...module, constants, classes, objects}
+        return this
     }
 } 
 

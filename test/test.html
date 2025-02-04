@@ -1,0 +1,91 @@
+<html>
+    <head>
+        
+    </head>
+    <body>
+
+    </body>
+    <script type="module">
+        import {WebDoc} from "../src/webdoc.js"
+        
+        function renderModule(doc) {
+            const div = document.createElement("div")
+
+            div.innerHTML = `<h1>${doc.name}</h1><div class="module-descriptor">`
+
+            if(doc.copyright) div.innerHTML += `<span class="copyright">${doc.copyright}</span>`
+            if(doc.license) div.innerHTML += `<span class="license">${doc.license}</span>`
+            if(doc.author) div.innerHTML += `<span class="author">${doc.author}</span>`
+            if(doc.disclaimer) div.innerHTML += `<span class="disclaimer">${doc.disclaimer}</span>`
+
+            div.innerHTML += "</div>"
+
+            if(Object.keys(doc.constants).length > 0) {
+                div.innerHTML += "<h2>Constants</h2>"
+                for(const const_name in doc.constants) div.innerHTML +=  "<h3>" + const_name + "</h3>" + renderConst(doc.constants[const_name])
+            }
+
+
+            if(Object.keys(doc.classes).length > 0) {
+                div.innerHTML += "<h2>Classes</h2>"
+                for(const class_name in doc.classes) div.innerHTML += "<h3>" + class_name + "</h3>" + renderClass(doc.classes[class_name])
+            }
+
+            if(Object.keys(doc.objects).length > 0) {
+                div.innerHTML += "<h2>Objects</h2>"
+                for(const obj_name in doc.objects) div.innerHTML += "<h3>" + obj_name + "</h3>" + renderObject(doc.objects[obj_name])
+            }
+            return div
+        }
+
+        function renderClass(cl) {
+            let html = `<span class="description">${cl.description}</span>`
+            if(cl.property) {
+                html += "<h4>properties</h4>"
+                for(const property_name in cl.property_name) html += "<h5>" + property_name + "</h5>" + renderFunction(cl.property[property_name])
+            }
+            if(cl.function) {
+                html += "<h4>functions</h4>"
+                for(const function_name in cl.function) html += "<h5>" + function_name + "</h5>" + renderFunction(cl.function[function_name])
+            }
+            return html
+        }
+
+        function renderConst(cs) {
+            let html = `<span class="description">${cs.description}</span>`
+            return html
+        }
+
+        function renderObject(obj) {
+            let html = `<span class="description">${obj.description}</span>`
+            if(obj.property) {
+                html += "<h4>properties</h4>"
+                for(const property_name in obj.property_name) html += "<h5>" + property_name + "</h5>" + renderFunction(obj.property[property_name])
+            }
+            if(obj.function) {
+                html += "<h4>functions</h4>"
+                for(const function_name in obj.function) html += "<h5>" + function_name + "</h5>" + renderFunction(obj.function[function_name])
+            }
+            return html
+        }
+
+        function renderFunction(func) {
+            return ""
+        }
+
+        function renderProperty(prop) {
+            return ""
+        }
+
+        const utils_wd = new WebDoc(await (await fetch("../lib/oceans.utils.js")).text()).parse().transform()
+        const wd_wd =  new WebDoc(await (await fetch("../src/webdoc.js")).text()).parse().transform()
+
+        document.body.appendChild(renderModule(utils_wd.document))
+        document.body.appendChild(renderModule(wd_wd.document))
+
+        console.log(utils_wd.document)
+        console.log(wd_wd.document)
+        
+
+    </script>
+</html>
