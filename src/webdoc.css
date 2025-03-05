@@ -1,0 +1,153 @@
+/** @copyright (C) 2025 @author sebastien.mamy@gmail.com @license GNU General Public Licence v2 @disclaimer in no event shall the author be liable for any claim or damages. */
+
+
+:root {
+    --font-face : Inter, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    --font-code: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
+}
+
+body {
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+div.header {
+    font-family: monospace;
+    height: 4rem;
+    line-height: 4rem;
+    position: absolute;
+    padding-left: 1.5rem;
+    font-weight: 500;
+    font-size: 1.4rem;
+}
+
+div.header img {
+    height: 2.5rem;
+    top: 0.75rem;
+    position: relative;
+}
+
+.title {
+    position: absolute;
+    top: 4rem;
+    font-family: var(--font-face);
+    font-size: 1rem;
+    left: 0;
+    width: 100vw;
+    border-top: 1px solid #CDCDCD;
+    border-bottom: 1px solid #CDCDCD;
+    background: #F8F8F8;
+    color: #4e4e4e;
+    padding: 0.25rem 1rem;
+    height: 1.25rem;
+    line-height: 1.25rem;
+}
+
+.separator {
+    color: #b3b3b3;
+    padding: 0 0.5rem;
+}
+.modules {
+    width: calc(72vw - 3rem);
+    height: calc(100vh - 4rem);
+    position: absolute;
+    right: 0;
+    overflow-y: scroll;
+    top: 4rem;
+}
+
+
+
+
+h1.module-name {
+    font-family:  var(--font-face);
+    font-size: 2.5rem;
+    cursor: default;
+}
+
+.const-description {
+    font-family:  var(--font-face);
+    font-size: 1rem;
+    font-weight: 200;
+    cursor: default;
+}
+
+.toc {
+    font-family: var(--font-face);
+    width: calc(28vw - 4.5rem);
+    height: calc(100vh - 4rem);
+    top: 6rem;
+    position: absolute;
+    left: 0;
+    overflow-y: scroll;
+    padding-left: 1.5rem;
+    padding-right: 3rem;
+    padding-bottom: 10rem;
+}
+
+.toc-module-name {
+    font-weight: 600;
+    font-size: 1.25rem;
+    padding-top: 1.5rem;
+    cursor: default;
+    transition: all 0.2s ease;
+}
+
+.toc-primitive-member-name:hover, .toc-primitive-name:hover {
+    text-decoration: underline;
+}
+
+
+.toc-primitive-title {
+    font-weight: 400;
+    font-size: 1rem;
+    padding-left: 0.5rem;
+    padding-top: 1rem;
+    cursor: default;
+    text-transform: capitalize;
+}
+
+.toc-primitive {
+    margin-left: 0.5rem;
+    /* border-left: 2px solid #c0c0c0; */
+}
+
+.toc-primitive-name {
+    padding: 1rem 0rem 0.5rem 0.5rem;
+    font-weight: 200;
+    font-size: 1rem;
+    cursor: default;
+    transition: color 0.2s ease;
+}
+
+.toc-primitive-name.constants {
+    padding-top: 0.5rem;
+    font-size: 0.9rem;
+    padding-bottom: 0.35rem;
+}
+
+/* 
+.toc-primitive-name:hover {
+    color: #0069c2;
+} */
+
+.toc-primitive-member-title {
+    padding: 0rem 0rem 0rem 0.5rem;
+    font-weight: 400;
+    margin-left: 0.5rem;
+    font-size: 0.8rem;
+    cursor: default;
+    border-left: 2px solid #c0c0c0;
+}
+
+.toc-primitive-member-name {
+    padding: 0.5rem 0rem 0.25rem 1rem;
+    font-family: var(--font-code);
+    font-size: 0.8rem;
+    cursor: default;
+    margin-left: 0.5rem;
+    border-left: 2px solid #c0c0c0;
+    transition: color 0.2s ease;
+    color: #4e4e4e;
+}

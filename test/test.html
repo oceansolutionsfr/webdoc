@@ -1,91 +1,109 @@
 <html>
     <head>
-        
+        <link rel="stylesheet" href="../src/webdoc.css">
     </head>
     <body>
-
     </body>
     <script type="module">
         import {WebDoc} from "../src/webdoc.js"
+
+        // window.toggle = (element_id) => document.getElementById(element_id)?.classList.toggle("hidden")
         
-        function renderModule(doc) {
-            const div = document.createElement("div")
 
-            div.innerHTML = `<h1>${doc.name}</h1><div class="module-descriptor">`
-
-            if(doc.copyright) div.innerHTML += `<span class="copyright">${doc.copyright}</span>`
-            if(doc.license) div.innerHTML += `<span class="license">${doc.license}</span>`
-            if(doc.author) div.innerHTML += `<span class="author">${doc.author}</span>`
-            if(doc.disclaimer) div.innerHTML += `<span class="disclaimer">${doc.disclaimer}</span>`
-
-            div.innerHTML += "</div>"
-
-            if(Object.keys(doc.constants).length > 0) {
-                div.innerHTML += "<h2>Constants</h2>"
-                for(const const_name in doc.constants) div.innerHTML +=  "<h3>" + const_name + "</h3>" + renderConst(doc.constants[const_name])
-            }
-
-
-            if(Object.keys(doc.classes).length > 0) {
-                div.innerHTML += "<h2>Classes</h2>"
-                for(const class_name in doc.classes) div.innerHTML += "<h3>" + class_name + "</h3>" + renderClass(doc.classes[class_name])
-            }
-
-            if(Object.keys(doc.objects).length > 0) {
-                div.innerHTML += "<h2>Objects</h2>"
-                for(const obj_name in doc.objects) div.innerHTML += "<h3>" + obj_name + "</h3>" + renderObject(doc.objects[obj_name])
-            }
-            return div
-        }
-
-        function renderClass(cl) {
-            let html = `<span class="description">${cl.description}</span>`
-            if(cl.property) {
-                html += "<h4>properties</h4>"
-                for(const property_name in cl.property_name) html += "<h5>" + property_name + "</h5>" + renderFunction(cl.property[property_name])
-            }
-            if(cl.function) {
-                html += "<h4>functions</h4>"
-                for(const function_name in cl.function) html += "<h5>" + function_name + "</h5>" + renderFunction(cl.function[function_name])
-            }
+        function renderHeader(title = "") {
+            let html = `<div class="header" id="header"><img src="data:image/png;base64, ${WebDoc.oceansLogo}">oceans web doc</div><div class="title" id="path"></div>`
             return html
         }
 
-        function renderConst(cs) {
-            let html = `<span class="description">${cs.description}</span>`
-            return html
+        /** @self @return string html code @description generate the code of the toc @param object document json representing the document @param string visibility set the level of visibility to display **/
+        function renderToc(document, visibility = "public") {            
+            let html = `<div class="toc">`
+            for(const mod_doc of Object.values(document)) {
+                html += `<div class="toc-module"><div class="toc-module-name" onclick="webdoc.navigate('${mod_doc.name}')">${mod_doc.name}</div>`
+                for(const key of ["constants","classes", "objects"]) if(Object.keys(mod_doc[key]).length > 0) {
+                    html += `<div class="toc-primitive-title">${key}</div>`
+                    for(const name in mod_doc[key]) {
+                        const primitive =  mod_doc[key][name]
+                        html+= `<div class="toc-primitive"><div class="toc-primitive-name ${key}" onclick="webdoc.navigate('${primitive.path}')">${name}</div>`
+                        const visible_properties = Object.values(primitive?.property || {})?.filter(prop => prop.visibility === "public" || prop.visibility === visibility) || []
+                        const visible_functions = Object.values(primitive?.function || {})?.filter(func => func.visibility === "public" || func.visibility === visibility) || []
+                        if(visible_properties.length > 0) {
+                            html += `<div class="toc-primitive-member-title">Properties</div>`
+                            for(const prop of visible_properties) html += `<div class="toc-primitive-member-name" onclick="webdoc.navigate('${prop.path}')">${prop.name}()</div>`
+                        }
+                        if(visible_functions.length > 0) {
+                            html += `<div class="toc-primitive-member-title">Functions</div>`
+                            for(const func of visible_functions) html += `<div class="toc-primitive-member-name" onclick="webdoc.navigate('${func.path}')">${func.name}()</div>`
+                        }
+                        html += `</div>`
+                    }
+                }
+                html += `</div>`
+            }                
+            return `${html}</div>`
+
         }
-
-        function renderObject(obj) {
-            let html = `<span class="description">${obj.description}</span>`
-            if(obj.property) {
-                html += "<h4>properties</h4>"
-                for(const property_name in obj.property_name) html += "<h5>" + property_name + "</h5>" + renderFunction(obj.property[property_name])
-            }
-            if(obj.function) {
-                html += "<h4>functions</h4>"
-                for(const function_name in obj.function) html += "<h5>" + function_name + "</h5>" + renderFunction(obj.function[function_name])
-            }
-            return html
-        }
-
-        function renderFunction(func) {
-            return ""
-        }
-
-        function renderProperty(prop) {
-            return ""
-        }
-
-        const utils_wd = new WebDoc(await (await fetch("../lib/oceans.utils.js")).text()).parse().transform()
-        const wd_wd =  new WebDoc(await (await fetch("../src/webdoc.js")).text()).parse().transform()
-
-        document.body.appendChild(renderModule(utils_wd.document))
-        document.body.appendChild(renderModule(wd_wd.document))
-
-        console.log(utils_wd.document)
-        console.log(wd_wd.document)
         
+        function renderModule(doc, visibility = "public") {
+            let html = `<div class="module"><h1 class="module-name">${doc.name}</h1>`
+
+            for(const prop of ["licence","author","copyright","disclaimer"]) if(doc[prop]) html += `<div class="${prop}">${doc[prop]}</div>`
+            if(doc.description) html += `<div class="module-description">${doc.description}</div>`
+            for(const key of ["constants","classes", "objects"]) if(Object.keys(doc[key]).length > 0) {
+                html += `<h2 class="${key}-title">${key}</h2>`
+                for(const name in doc[key]) html += renderPrimitive(doc[key][name], visibility)
+            }
+            return `${html}</div>`
+        }
+
+        function renderPrimitive(primitive, visibility = "public") {
+            let html = `<div id="${primitive.path}"><h3 class="${primitive.primitive}-name">${primitive.name}</h3><div class="${primitive.primitive}-description">${primitive.description||""}</div>`
+            if(primitive.type) `<div class="type">${primitive.type}</div>`
+            for(const key of ["property","function"]) if(primitive[key]) {
+                html += `<h4 class="primitive-member-title">${key === "property" ? "Properties" : "Functions"}</h4>`
+                for(const element of Object.values(primitive[key])) html += renderElement(element, visibility)
+            }
+            return html + "</div>"
+        }
+
+        function renderElement(element, visibility = "public") {
+            if(element.visibility !== visibility && element.visibility === "private") return ""
+            let html = `<div id="${element.path}"><h5 class="${element.primitive}-name">${element.name}</h5>`
+
+            if(element.member_type === "class") html += `<div class="static">static</div>`
+            if(element.visibility) html += `<div class="visibility">${element.visibility}</div>`
+            
+            if(element.description) html += `<div class="element-description">${element.description}</div>`
+            if(element.primitive === "property") {
+                html += `<div class="$property-type">${element.type}</div>`
+            }
+            if(element.primitive === "function") {
+                if(element.function_type) html += `<div class="$function-type">${element.function_type}</div>`
+                html += `<div class="$property-type">return type: ${element.type}</div>`
+                if(element.params) {
+                    html += "<h6>parameters</h6>"
+                    for(const param_name in element.params) html += renderParam(param_name, element.params[param_name])
+                }
+            }
+            return html + "</div>"
+        }
+
+        function renderParam(name, param) {
+            let html = `<div class="param-name">${name}</div><div class="param-type">${param.type}</div><div class="param-description">${param.description}</div>`
+            return html
+        }
+        
+        window.webdoc = new WebDoc()
+
+        webdoc.add({name: "oceans.utils", javascript: await (await fetch("../lib/oceans.utils.js")).text()})
+        webdoc.add({name: "webdoc", javascript: await (await fetch("../src/webdoc.js")).text()})
+
+        webdoc.parse().transform()
+
+        console.log(webdoc)
+
+        document.body.innerHTML += renderHeader()
+        document.body.innerHTML += renderToc(webdoc.document)
 
     </script>
 </html>
